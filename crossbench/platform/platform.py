@@ -213,7 +213,6 @@ class Platform(abc.ABC):
     segment path with just the binary name.
     Returns the location of the binary (and not the .app bundle on macOS).
     """
-    pass
 
   @abc.abstractmethod
   def app_version(self, app_or_bin: pathlib.Path) -> str:
@@ -221,6 +220,8 @@ class Platform(abc.ABC):
 
   @property
   def has_display(self) -> bool:
+    """Return a bool whether the platform has an active display.
+    This can be false on linux without $DISPLAY, true an all other platforms."""
     return True
 
   def sleep(self, seconds: Union[int, float, dt.timedelta]) -> None:

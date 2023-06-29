@@ -284,10 +284,10 @@ class AndroidAdbPlatform(PosixPlatform):
       raise ValueError(f"Package '{package}' is not installed on {self._adb}")
     return package
 
-  def search_binary(self, app_path: pathlib.Path) -> Optional[pathlib.Path]:
+  def search_binary(self, app_or_bin: pathlib.Path) -> Optional[pathlib.Path]:
     raise NotImplementedError()
 
-  def search_app(self, bin_path: pathlib.Path) -> Optional[pathlib.Path]:
+  def search_app(self, app_or_bin: pathlib.Path) -> Optional[pathlib.Path]:
     raise NotImplementedError()
 
   _VERSION_NAME_RE = re.compile(r"versionName=(?P<version>.+)")

@@ -69,7 +69,8 @@ class LinuxPlatform(PosixPlatform):
         details[info_bin] = self.sh_stdout(info_bin)
     return details
 
-  def search_binary(self, app_or_bin_path: pathlib.Path) -> Optional[pathlib.Path]:
+  def search_binary(self,
+                    app_or_bin_path: pathlib.Path) -> Optional[pathlib.Path]:
     for path in self.SEARCH_PATHS:
       # Recreate Path object for easier pyfakefs testing
       result_path = pathlib.Path(path) / app_or_bin_path

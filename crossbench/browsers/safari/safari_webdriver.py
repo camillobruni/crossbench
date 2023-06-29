@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import logging
 import pathlib
+import time
 from typing import TYPE_CHECKING, Optional
 
 from selenium import webdriver
@@ -17,7 +18,7 @@ from crossbench.browsers.splash_screen import SplashScreen
 from crossbench.browsers.viewport import Viewport
 from crossbench.browsers.webdriver import WebDriverBrowser
 
-from .safari import Safari
+from .safari import Safari, find_safaridriver
 
 if TYPE_CHECKING:
   from crossbench.flags import Flags
@@ -49,12 +50,7 @@ class SafariWebDriver(WebDriverBrowser, Safari):
     pass
 
   def _find_driver(self) -> pathlib.Path:
-    assert self.path
-    driver_path = self.path.parent / "safaridriver"
-    if not driver_path.exists():
-      # The system-default Safari version doesn't come with the driver
-      driver_path = pathlib.Path("/usr/bin/safaridriver")
-    return driver_path
+    return find_safaridriver(self.path)
 
   def _start_driver(self, run: Run,
                     driver_path: pathlib.Path) -> webdriver.Safari:
@@ -63,27 +59,31 @@ class SafariWebDriver(WebDriverBrowser, Safari):
                  driver_path)
 
     options = SafariOptions()
+    # Don't wait for document-ready.
+    options.set_capability("pageLoadStrategy", "eager")
+
     args = self._get_browser_flags_for_run(run)
     for arg in args:
       options.add_argument(arg)
-    options.binary_location = str(self.path)
+    #options.binary_location = str(self.path)
 
-    options.set_capability("safari.cleanSession", "true")
-    # Don't wait for document-ready.
-    options.set_capability("pageLoadStrategy", "eager")
     # Enable browser logging
-    options.set_capability("safari:diagnose", "true")
+    # options.set_capability("safari:diagnose", "true")
     if "Technology Preview" in self.app_name:
+      logging.debug("useing TP browser")
       options.set_capability("browserName", "Safari Technology Preview")
       options.use_technology_preview = True
+
+    with run.actions("Clearing Browser Cache"):
+      self._clear_cache()
+      self.platform.exec_apple_script(f"""
+        tell application "{self.app_path}" to quit """)
 
     service = SafariService(executable_path=str(driver_path),)
     driver = webdriver.Safari(
         service=service,
-        options=options,
-        desired_capabilities=options.to_capabilities())
+        options=options)
     assert driver.session_id, "Could not start webdriver"
-    self._clear_cache()
     logs = (
         pathlib.Path("~/Library/Logs/com.apple.WebDriver/").expanduser() /
         driver.session_id)

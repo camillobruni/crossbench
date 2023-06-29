@@ -7,6 +7,7 @@ from __future__ import annotations
 import logging
 import pathlib
 from typing import TYPE_CHECKING, Optional
+from crossbench import compat
 
 from crossbench.browsers.browser import Browser
 
@@ -17,6 +18,18 @@ if TYPE_CHECKING:
   from crossbench.platform.macos import MacOSPlatform
   from crossbench.runner import Runner
 
+
+SAFARIDRIVER_PATH = pathlib.Path("/usr/bin/safaridriver")
+
+def find_safaridriver(bin_path : pathlib.Path) -> pathlib.Path:
+  assert bin_path.is_file(), f"Invalid binary path: {bin_path}"
+  driver_path = bin_path.parent / "safaridriver"
+  if driver_path.exists():
+    return driver_path
+  # The system-default Safari version doesn't come with the driver
+  assert compat.is_relative_to(bin_path, Safari.default_path), (
+    f"Expected default Safari.app binary but got {bin_path}")
+  return  SAFARIDRIVER_PATH
 
 class Safari(Browser):
 
@@ -71,6 +84,11 @@ class Safari(Browser):
       end tell""")
 
   def _extract_version(self) -> str:
+    # Use the shipped safaridriver to get the more detailed version
+    driver_version  = self.platform.app_version(find_safaridriver(self.path))
+    # Input: "Included with Safari 16.6 (18615.3.6.11.1)"
+    # Output: " (18615.3.6.11.1)"
+    driver_version = " (" + driver_version.split(" (", maxsplit=1)[1]
     assert self.path
     app_path = self.path.parents[2]
-    return self.platform.app_version(app_path)
+    return self.platform.app_version(app_path) + driver_version

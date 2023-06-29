@@ -101,18 +101,18 @@ class MacOSPlatform(PosixPlatform):
     assert app_path.exists(), f"Binary {bin} does not exist."
 
     dot_app_path = None
-    current = app_path
-    while current != app_path.root:
-      if current.suffix == ".app":
+    for current in (app_path, *app_path.parents):
+      print(current.stem,  "|", app_path.stem)
+      if current.suffix == ".app" and current.stem == app_path.stem:
         dot_app_path = current
         break
-      current = current.parent
     if not dot_app_path:
       # Most likely just a cli tool"
       return self.sh_stdout(app_path, "--version").strip()
 
     version_string = self.sh_stdout("mdls", "-name", "kMDItemVersion",
                                     dot_app_path).strip()
+    logging.debug("version_string = %s %s", version_string, dot_app_path)
     # Filter output: 'kMDItemVersion = "14.1"' => '"14.1"'
     _, version_string = version_string.split(" = ", maxsplit=1)
     if version_string != "(null)":
@@ -124,6 +124,7 @@ class MacOSPlatform(PosixPlatform):
       maybe_bin_path = self.search_binary(app_path)
     if maybe_bin_path:
       try:
+        logging.debug("FAllback --version")
         return self.sh_stdout(maybe_bin_path, "--version").strip()
       except SubprocessError as e:
         logging.debug("Could not use --version: %s", e)

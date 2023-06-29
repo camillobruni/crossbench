@@ -80,9 +80,7 @@ class SafariWebDriver(WebDriverBrowser, Safari):
         tell application "{self.app_path}" to quit """)
 
     service = SafariService(executable_path=str(driver_path),)
-    driver = webdriver.Safari(
-        service=service,
-        options=options)
+    driver = webdriver.Safari(service=service, options=options)
     assert driver.session_id, "Could not start webdriver"
     logs = (
         pathlib.Path("~/Library/Logs/com.apple.WebDriver/").expanduser() /

@@ -97,38 +97,36 @@ class MacOSPlatform(PosixPlatform):
     assert app_path.is_dir()
     return app_path
 
-  def app_version(self, app_path: pathlib.Path) -> str:
-    assert app_path.exists(), f"Binary {bin} does not exist."
+  def app_version(self, app_or_bin_path: pathlib.Path) -> str:
+    assert app_or_bin_path.exists(), f"Binary {app_or_bin_path} does not exist."
 
-    dot_app_path = None
-    for current in (app_path, *app_path.parents):
-      print(current.stem,  "|", app_path.stem)
-      if current.suffix == ".app" and current.stem == app_path.stem:
-        dot_app_path = current
+    app_path = None
+    for current in (app_or_bin_path, *app_or_bin_path.parents):
+      if current.suffix == ".app" and current.stem == app_or_bin_path.stem:
+        app_path = current
         break
-    if not dot_app_path:
+    if not app_path:
       # Most likely just a cli tool"
-      return self.sh_stdout(app_path, "--version").strip()
-
+      return self.sh_stdout(app_or_bin_path, "--version").strip()
     version_string = self.sh_stdout("mdls", "-name", "kMDItemVersion",
-                                    dot_app_path).strip()
-    logging.debug("version_string = %s %s", version_string, dot_app_path)
+                                    app_path).strip()
+    logging.debug("version_string = %s %s", version_string, app_path)
     # Filter output: 'kMDItemVersion = "14.1"' => '"14.1"'
     _, version_string = version_string.split(" = ", maxsplit=1)
     if version_string != "(null)":
       # Strip quotes: '"14.1"' => '14.1'
       return version_string[1:-1]
-    # Backup solution with --version
-    maybe_bin_path: Optional[pathlib.Path] = app_path
-    if app_path.suffix == ".app":
-      maybe_bin_path = self.search_binary(app_path)
-    if maybe_bin_path:
-      try:
-        logging.debug("FAllback --version")
-        return self.sh_stdout(maybe_bin_path, "--version").strip()
-      except SubprocessError as e:
-        logging.debug("Could not use --version: %s", e)
-    raise ValueError(f"Could not extract app version: {app_path}")
+    # Backup solution use the binary (not the .app bundle) with --version.
+    maybe_bin_path: Optional[pathlib.Path] = app_or_bin_path
+    if app_or_bin_path.suffix == ".app":
+      maybe_bin_path = self.search_binary(app_or_bin_path)
+    if not maybe_bin_path:
+      raise ValueError(f"Could not extract app version: {app_or_bin_path}")
+    try:
+      return self.sh_stdout(maybe_bin_path, "--version").strip()
+    except SubprocessError as e:
+      raise ValueError(
+          f"Could not extract app version: {app_or_bin_path}") from e
 
   def exec_apple_script(self, script: str, *args: str) -> str:
     if args:

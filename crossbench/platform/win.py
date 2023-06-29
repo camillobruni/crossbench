@@ -54,8 +54,8 @@ class WinPlatform(Platform):
         return result_path
     return None
 
-  def app_version(self, app_path: pathlib.Path) -> str:
-    assert app_path.exists(), f"Binary {app_path} does not exist."
+  def app_version(self, app_or_bin_path: pathlib.Path) -> str:
+    assert app_or_bin_path.exists(), f"Binary {app_or_bin_path} does not exist."
     return self.sh_stdout(
         "powershell", "-command",
-        f"(Get-Item '{app_path}').VersionInfo.ProductVersion")
+        f"(Get-Item '{app_or_bin_path}').VersionInfo.ProductVersion")

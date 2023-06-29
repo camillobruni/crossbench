@@ -86,16 +86,16 @@ class MacOSPlatform(PosixPlatform):
         return result_path
     return None
 
-  def search_app(self, app_path: pathlib.Path) -> Optional[pathlib.Path]:
-    binary = self.search_binary(app_path)
+  def search_app(self, bin_path: pathlib.Path) -> Optional[pathlib.Path]:
+    binary = self.search_binary(bin_path)
     if not binary:
       return None
     # input: /Applications/Safari.app/Contents/MacOS/Safari
     # output: /Applications/Safari.app
-    app_path = binary.parents[2]
-    assert app_path.suffix == ".app"
-    assert app_path.is_dir()
-    return app_path
+    bin_path = binary.parents[2]
+    assert bin_path.suffix == ".app"
+    assert bin_path.is_dir()
+    return bin_path
 
   def app_version(self, app_or_bin_path: pathlib.Path) -> str:
     assert app_or_bin_path.exists(), f"Binary {app_or_bin_path} does not exist."

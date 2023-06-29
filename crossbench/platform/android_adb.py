@@ -292,9 +292,9 @@ class AndroidAdbPlatform(PosixPlatform):
 
   _VERSION_NAME_RE = re.compile(r"versionName=(?P<version>.+)")
 
-  def app_version(self, app_path: pathlib.Path) -> str:
+  def app_version(self, app_or_bin_path: pathlib.Path) -> str:
     # adb shell dumpsys package com.chrome.canary | grep versionName -C2
-    package = self.app_path_to_package(app_path)
+    package = self.app_path_to_package(app_or_bin_path)
     package_info = self.adb.dumpsys("package", str(package))
     match_result = self._VERSION_NAME_RE.search(package_info)
     if match_result is None:

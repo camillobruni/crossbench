@@ -205,11 +205,11 @@ class Platform(abc.ABC):
     return self.search_binary(app_path)
 
   @abc.abstractmethod
-  def search_binary(self, app_path: pathlib.Path) -> Optional[pathlib.Path]:
+  def search_binary(self, bin_path: pathlib.Path) -> Optional[pathlib.Path]:
     pass
 
   @abc.abstractmethod
-  def app_version(self, app_path: pathlib.Path) -> str:
+  def app_version(self, app_or_bin_path: pathlib.Path) -> str:
     pass
 
   @property

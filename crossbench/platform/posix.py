@@ -15,9 +15,9 @@ from .platform import Environ, Platform
 class PosixPlatform(Platform, metaclass=abc.ABCMeta):
   # pylint: disable=locally-disabled, redefined-builtin
 
-  def app_version(self, app_path: pathlib.Path) -> str:
-    assert app_path.exists(), f"Binary {app_path} does not exist."
-    return self.sh_stdout(app_path, "--version")
+  def app_version(self, app_or_bin_path: pathlib.Path) -> str:
+    assert app_or_bin_path.exists(), f"Binary {app_or_bin_path} does not exist."
+    return self.sh_stdout(app_or_bin_path, "--version")
 
   @property
   @lru_cache

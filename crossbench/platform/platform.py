@@ -201,15 +201,22 @@ class Platform(abc.ABC):
       return False
     return not status.power_plugged
 
-  def search_app(self, app_path: pathlib.Path) -> Optional[pathlib.Path]:
-    return self.search_binary(app_path)
+  def search_app(self, app_or_bin: pathlib.Path) -> Optional[pathlib.Path]:
+    """Look up a application bundle (macos) or binary (oll other platforms) in 
+    the common search paths.
+    """
+    return self.search_binary(app_or_bin)
 
   @abc.abstractmethod
-  def search_binary(self, bin_path: pathlib.Path) -> Optional[pathlib.Path]:
+  def search_binary(self, app_or_bin: pathlib.Path) -> Optional[pathlib.Path]:
+    """Look up a binary in the common search paths based of a path or a single
+    segment path with just the binary name.
+    Returns the location of the binary (and not the .app bundle on macOS).
+    """
     pass
 
   @abc.abstractmethod
-  def app_version(self, app_or_bin_path: pathlib.Path) -> str:
+  def app_version(self, app_or_bin: pathlib.Path) -> str:
     pass
 
   @property

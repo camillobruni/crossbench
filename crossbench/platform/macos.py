@@ -72,13 +72,13 @@ class MacOSPlatform(PosixPlatform):
       return bin_path
     raise Exception(f"Invalid number of binaries candidates found: {binaries}")
 
-  def search_binary(self, app_path: pathlib.Path) -> Optional[pathlib.Path]:
-    if app_path.suffix != ".app":
+  def search_binary(self, app_or_bin: pathlib.Path) -> Optional[pathlib.Path]:
+    if app_or_bin.suffix != ".app":
       raise ValueError("Expected app name with '.app' suffix, "
-                       f"but got: '{app_path.name}'")
+                       f"but got: '{app_or_bin.name}'")
     for search_path in self.SEARCH_PATHS:
       # Recreate Path object for easier pyfakefs testing
-      result_path = pathlib.Path(search_path) / app_path
+      result_path = pathlib.Path(search_path) / app_or_bin
       if not result_path.is_dir():
         continue
       result_path = self._find_app_binary_path(result_path)
@@ -86,8 +86,8 @@ class MacOSPlatform(PosixPlatform):
         return result_path
     return None
 
-  def search_app(self, bin_path: pathlib.Path) -> Optional[pathlib.Path]:
-    binary = self.search_binary(bin_path)
+  def search_app(self, app_or_bin: pathlib.Path) -> Optional[pathlib.Path]:
+    binary = self.search_binary(app_or_bin)
     if not binary:
       return None
     # input: /Applications/Safari.app/Contents/MacOS/Safari
@@ -97,17 +97,17 @@ class MacOSPlatform(PosixPlatform):
     assert bin_path.is_dir()
     return bin_path
 
-  def app_version(self, app_or_bin_path: pathlib.Path) -> str:
-    assert app_or_bin_path.exists(), f"Binary {app_or_bin_path} does not exist."
+  def app_version(self, app_or_bin: pathlib.Path) -> str:
+    assert app_or_bin.exists(), f"Binary {app_or_bin} does not exist."
 
     app_path = None
-    for current in (app_or_bin_path, *app_or_bin_path.parents):
-      if current.suffix == ".app" and current.stem == app_or_bin_path.stem:
+    for current in (app_or_bin, *app_or_bin.parents):
+      if current.suffix == ".app" and current.stem == app_or_bin.stem:
         app_path = current
         break
     if not app_path:
       # Most likely just a cli tool"
-      return self.sh_stdout(app_or_bin_path, "--version").strip()
+      return self.sh_stdout(app_or_bin, "--version").strip()
     version_string = self.sh_stdout("mdls", "-name", "kMDItemVersion",
                                     app_path).strip()
     logging.debug("version_string = %s %s", version_string, app_path)

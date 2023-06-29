@@ -43,19 +43,19 @@ class WinPlatform(Platform):
     # TODO: implement
     return ""
 
-  def search_binary(self, app_path: pathlib.Path) -> Optional[pathlib.Path]:
-    if app_path.suffix != ".exe":
+  def search_binary(self, app_or_bin: pathlib.Path) -> Optional[pathlib.Path]:
+    if app_or_bin.suffix != ".exe":
       raise ValueError("Expected executable path with '.exe' suffix, "
-                       f"but got: '{app_path.name}'")
+                       f"but got: '{app_or_bin.name}'")
     for path in self.SEARCH_PATHS:
       # Recreate Path object for easier pyfakefs testing
-      result_path = pathlib.Path(path) / app_path
+      result_path = pathlib.Path(path) / app_or_bin
       if result_path.exists():
         return result_path
     return None
 
-  def app_version(self, app_or_bin_path: pathlib.Path) -> str:
-    assert app_or_bin_path.exists(), f"Binary {app_or_bin_path} does not exist."
+  def app_version(self, app_or_bin: pathlib.Path) -> str:
+    assert app_or_bin.exists(), f"Binary {app_or_bin} does not exist."
     return self.sh_stdout(
         "powershell", "-command",
-        f"(Get-Item '{app_or_bin_path}').VersionInfo.ProductVersion")
+        f"(Get-Item '{app_or_bin}').VersionInfo.ProductVersion")

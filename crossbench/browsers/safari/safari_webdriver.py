@@ -25,7 +25,6 @@ if TYPE_CHECKING:
   from crossbench.platform.macos import MacOSPlatform
   from crossbench.runner import Run, Runner
 
-
 class SafariWebDriver(WebDriverBrowser, Safari):
 
   def __init__(
@@ -65,12 +64,10 @@ class SafariWebDriver(WebDriverBrowser, Safari):
     args = self._get_browser_flags_for_run(run)
     for arg in args:
       options.add_argument(arg)
-    #options.binary_location = str(self.path)
 
     # Enable browser logging
     # options.set_capability("safari:diagnose", "true")
     if "Technology Preview" in self.app_name:
-      logging.debug("useing TP browser")
       options.set_capability("browserName", "Safari Technology Preview")
       options.use_technology_preview = True
 
@@ -80,7 +77,15 @@ class SafariWebDriver(WebDriverBrowser, Safari):
         tell application "{self.app_path}" to quit """)
 
     service = SafariService(executable_path=str(driver_path),)
-    driver = webdriver.Safari(service=service, options=options)
+    driver_kwargs = {"service": service, "options":options}
+
+    # Manually inject desired options for older selenium versions (fixed in vpython).
+    if webdriver.__version__ == '4.1.0':
+      options.binary_location = str(self.path)
+      driver_kwargs["desired_capabilities"] = options.to_capabilities()
+
+    driver = webdriver.Safari(**driver_kwargs)
+
     assert driver.session_id, "Could not start webdriver"
     logs = (
         pathlib.Path("~/Library/Logs/com.apple.WebDriver/").expanduser() /

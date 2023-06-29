@@ -77,7 +77,7 @@ class SafariWebDriver(WebDriverBrowser, Safari):
         tell application "{self.app_path}" to quit """)
 
     service = SafariService(executable_path=str(driver_path),)
-    driver_kwargs = {"service": service, "options":options}
+    driver_kwargs = {"service": service, "options": options}
 
     # Manually inject desired options for older selenium versions (fixed in vpython).
     if webdriver.__version__ == '4.1.0':
